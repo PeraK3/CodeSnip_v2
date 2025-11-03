@@ -2,8 +2,8 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import codesnip_v1
-import image_editor2
+import codesnip_v2
+import codesnip_v2
 
 from skimage import io, color
 from PIL import Image
@@ -41,8 +41,8 @@ if img_raw_ctrl and img_raw_exp:
     avg_h = int((h_ctrl + h_exp) / 2)
 
     # Resize both using your provided function
-    resized_ctrl = image_editor2.resize_to_average(img_raw_ctrl, ref_size=(avg_w, avg_h))
-    resized_exp = image_editor2.resize_to_average(img_raw_exp, ref_size=(avg_w, avg_h))
+    resized_ctrl = codesnip_v2.resize_to_average(img_raw_ctrl, ref_size=(avg_w, avg_h))
+    resized_exp = codesnip_v2.resize_to_average(img_raw_exp, ref_size=(avg_w, avg_h))
 
     # Replace uploaded objects with resized versions
     img_raw_ctrl = Image.fromarray(resized_ctrl)
@@ -58,15 +58,15 @@ with col_ctrl:
         st.divider()
 
         img_array_ctrl = np.array(img_raw_ctrl)
-        df_ctrl = codesnip_v1.analyze_image_V2(img_array_ctrl)
+        df_ctrl = codesnip_v2.analyze_image_V2(img_array_ctrl)
 
         # --- Convert to grayscale safely
         gray_ctrl = img_array_ctrl
         if gray_ctrl.ndim == 3 and gray_ctrl.shape[2] == 3:
             gray_ctrl = color.rgb2gray(gray_ctrl)
 
-        bg_ctrl, fg_ctrl = codesnip_v1.auto_thresholds(gray_ctrl)
-        labels_ctrl = codesnip_v1.watershed_seg_V4(image=gray_ctrl, sure_fg=fg_ctrl, sure_bg=bg_ctrl)
+        bg_ctrl, fg_ctrl = codesnip_v2.auto_thresholds(gray_ctrl)
+        labels_ctrl = codesnip_v2.watershed_seg_V4(image=gray_ctrl, sure_fg=fg_ctrl, sure_bg=bg_ctrl)
 
         fig_ctrl, ax_ctrl = plt.subplots()
         im_ctrl = ax_ctrl.imshow(labels_ctrl, cmap="nipy_spectral")
@@ -84,15 +84,15 @@ with col_ctrl:
             alpha_ctrl = st.slider("Adjust contrast (Control)", -1.0, 5.0, 1.0)
             beta_ctrl = st.slider("Adjust brightness (Control)", -50, 50, 0)
 
-        img_tweak_ctrl = image_editor2.adjust_image(img_array_ctrl, alpha_ctrl, beta_ctrl)
+        img_tweak_ctrl = codesnip_v2.adjust_image(img_array_ctrl, alpha_ctrl, beta_ctrl)
 
         # --- Convert to grayscale safely (after tweak)
         gray_tweak_ctrl = img_tweak_ctrl
         if gray_tweak_ctrl.ndim == 3 and gray_tweak_ctrl.shape[2] == 3:
             gray_tweak_ctrl = color.rgb2gray(gray_tweak_ctrl)
 
-        bg_ctrl_tweak, fg_ctrl_tweak = codesnip_v1.auto_thresholds(gray_tweak_ctrl)
-        labels_ctrl_tweak = codesnip_v1.watershed_seg_V4(image=gray_tweak_ctrl, sure_fg=fg_ctrl_tweak, sure_bg=bg_ctrl_tweak)
+        bg_ctrl_tweak, fg_ctrl_tweak = codesnip_v2.auto_thresholds(gray_tweak_ctrl)
+        labels_ctrl_tweak = codesnip_v2.watershed_seg_V4(image=gray_tweak_ctrl, sure_fg=fg_ctrl_tweak, sure_bg=bg_ctrl_tweak)
 
         fig_tweak_ctrl, ax_tweak_ctrl = plt.subplots()
         im_tweak_ctrl = ax_tweak_ctrl.imshow(labels_ctrl_tweak, cmap="nipy_spectral")
@@ -111,8 +111,8 @@ with col_ctrl:
         with col2_ctrl:
             min_threshold_ctrl = st.slider("Delete small bands (Control)", 0, 200, 10)
 
-        df_filtered_ctrl = codesnip_v1.remove_redundancy(df_ctrl, min_threshold_ctrl)
-        mean_ctrl, median_ctrl, mode_ctrl, std_ctrl = codesnip_v1.find_parameters(df_filtered_ctrl)
+        df_filtered_ctrl = codesnip_v2.remove_redundancy(df_ctrl, min_threshold_ctrl)
+        mean_ctrl, median_ctrl, mode_ctrl, std_ctrl = codesnip_v2.find_parameters(df_filtered_ctrl)
 
         parameters_dict_ctrl = {
             "Mean": float(mean_ctrl),
@@ -127,7 +127,7 @@ with col_ctrl:
         selected_key_ctrl = st.selectbox("Pick a parameter (Control):", parameters_dict_ctrl)
         selected_param_ctrl = parameters_dict_ctrl[selected_key_ctrl]
 
-        df_filtered_ctrl = codesnip_v1.classify_bands(df_filtered_ctrl, selected_param_ctrl)
+        df_filtered_ctrl = codesnip_v2.classify_bands(df_filtered_ctrl, selected_param_ctrl)
 
         st.divider()
         st.dataframe(df_filtered_ctrl)
@@ -142,15 +142,15 @@ with col_exp:
         st.divider()
 
         img_array_exp = np.array(img_raw_exp)
-        df_exp = codesnip_v1.analyze_image_V2(img_array_exp)
+        df_exp = codesnip_v2.analyze_image_V2(img_array_exp)
 
         # --- Convert to grayscale safely
         gray_exp = img_array_exp
         if gray_exp.ndim == 3 and gray_exp.shape[2] == 3:
             gray_exp = color.rgb2gray(gray_exp)
 
-        bg_exp, fg_exp = codesnip_v1.auto_thresholds(gray_exp)
-        labels_exp = codesnip_v1.watershed_seg_V4(image=gray_exp, sure_fg=fg_exp, sure_bg=bg_exp)
+        bg_exp, fg_exp = codesnip_v2.auto_thresholds(gray_exp)
+        labels_exp = codesnip_v2.watershed_seg_V4(image=gray_exp, sure_fg=fg_exp, sure_bg=bg_exp)
 
         fig_exp, ax_exp = plt.subplots()
         im_exp = ax_exp.imshow(labels_exp, cmap="nipy_spectral")
@@ -168,15 +168,15 @@ with col_exp:
             alpha_exp = st.slider("Adjust contrast (Experimental)", -1.0, 5.0, 1.0)
             beta_exp = st.slider("Adjust brightness (Experimental)", -50, 50, 0)
 
-        img_tweak_exp = image_editor2.adjust_image(img_array_exp, alpha_exp, beta_exp)
+        img_tweak_exp = codesnip_v2.adjust_image(img_array_exp, alpha_exp, beta_exp)
 
         # --- Convert to grayscale safely (after tweak)
         gray_tweak_exp = img_tweak_exp
         if gray_tweak_exp.ndim == 3 and gray_tweak_exp.shape[2] == 3:
             gray_tweak_exp = color.rgb2gray(gray_tweak_exp)
 
-        bg_exp_tweak, fg_exp_tweak = codesnip_v1.auto_thresholds(gray_tweak_exp)
-        labels_exp_tweak = codesnip_v1.watershed_seg_V4(image=gray_tweak_exp, sure_fg=fg_exp_tweak, sure_bg=bg_exp_tweak)
+        bg_exp_tweak, fg_exp_tweak = codesnip_v2.auto_thresholds(gray_tweak_exp)
+        labels_exp_tweak = codesnip_v2.watershed_seg_V4(image=gray_tweak_exp, sure_fg=fg_exp_tweak, sure_bg=bg_exp_tweak)
 
         fig_tweak_exp, ax_tweak_exp = plt.subplots()
         im_tweak_exp = ax_tweak_exp.imshow(labels_exp_tweak, cmap="nipy_spectral")
@@ -195,8 +195,8 @@ with col_exp:
         with col2_exp:
             min_threshold_exp = st.slider("Delete small bands (Experimental)", 0, 200, 10)
 
-        df_filtered_exp = codesnip_v1.remove_redundancy(df_exp, min_threshold_exp)
-        mean_exp, median_exp, mode_exp, std_exp = codesnip_v1.find_parameters(df_filtered_exp)
+        df_filtered_exp = codesnip_v2.remove_redundancy(df_exp, min_threshold_exp)
+        mean_exp, median_exp, mode_exp, std_exp = codesnip_v2.find_parameters(df_filtered_exp)
 
         parameters_dict_exp = {
             "Mean": float(mean_exp),
@@ -211,7 +211,7 @@ with col_exp:
         selected_key_exp = st.selectbox("Pick a parameter (Experimental):", parameters_dict_exp)
         selected_param_exp = parameters_dict_exp[selected_key_exp]
 
-        df_filtered_exp = codesnip_v1.classify_bands(df_filtered_exp, selected_param_exp)
+        df_filtered_exp = codesnip_v2.classify_bands(df_filtered_exp, selected_param_exp)
 
         st.divider()
         st.dataframe(df_filtered_exp)
@@ -298,9 +298,9 @@ if "df_filtered_ctrl" in locals() and "df_filtered_exp" in locals():
                 ]
 
     # ===============================
-    # AUTO-CONVERT TEXT TO NUMERIC (from image_editor2)
+    # AUTO-CONVERT TEXT TO NUMERIC (from codesnip_v2)
     # ===============================
-    combined_df, num_cols, cat_cols = image_editor2.auto_convert_columns(combined_df)
+    combined_df, num_cols, cat_cols = codesnip_v2.auto_convert_columns(combined_df)
 
     # Display result
     st.dataframe(combined_df)
